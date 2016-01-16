@@ -1,10 +1,12 @@
 dockerregistry:
   image: registry:2
+  hostname: dockerregistry
   ports:
     - "5000:5000"
 
 zookeeper:
   image: mesoscope/zookeeper
+  hostname: zookeeper
   environment:
     - SERVER_ID=mesoscope-zk
   ports:
@@ -12,8 +14,9 @@ zookeeper:
 
 mesosmaster:
   image: mesoscope/mesos-master
+  hostname: mesosmaster
   links:
-    - zookeeper:zookeeper
+    - zookeeper
   environment:
     - MESOS_ZK=zk://zookeeper:2181/mesos
     - MESOS_PORT=5050
@@ -26,17 +29,29 @@ mesosmaster:
 
 mesosmarathon:
   image: mesoscope/mesos-marathon
+  hostname: mesosmarathon
   links:
-    - zookeeper:zookeeper
+    - zookeeper
   command: --master zk://zookeeper:2181/mesos --zk zk://zookeeper:2181/marathon
   ports:
     - "8080:8080"
 
+mesosaurora:
+  image: mesoscope/mesos-aurora
+  hostname: mesosaurora
+  links:
+    - zookeeper
+    - mesosmaster
+  ports:
+    - "8081:8081"
+    - "8083:8083"
+
 mesosslave:
   image: mesoscope/mesos-slave
+  hostname: mesosslave
   links:
-    - zookeeper:zookeeper
-    - dockerregistry:dockerregistry
+    - zookeeper
+    - dockerregistry
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   environment:
@@ -48,13 +63,4 @@ mesosslave:
     - MESOS_WORK_DIR=/var/mesos
   ports:
     - "5051:5051"
-    - "31000:31000"
-    - "31001:31001"
-    - "31002:31002"
-    - "31003:31003"
-    - "31004:31004"
-    - "31005:31005"
-    - "31006:31006"
-    - "31007:31007"
-    - "31008:31008"
-    - "31009:31009"
+    - "31000-31009:31000-31009"
